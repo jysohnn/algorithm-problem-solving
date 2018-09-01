@@ -28,6 +28,6 @@ int main()
 {
 	cin >> n >> m;
 	for (int i = 0; i < n; i++) scanf("%lld", a + i);
-	cout << bc(1, 2000000001);
+	cout << bc(0, 2000000001);
 	return 0;
 }

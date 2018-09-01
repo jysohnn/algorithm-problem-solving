@@ -1,69 +1,79 @@
-#include <cstdio>
+#include <iostream>
+#include <algorithm>
 
-int n, m, k;
-long long a[4000001] = { 0 };
-long long lazy[4000001] = { 0 };
+using namespace std;
+using ll = long long;
 
-void update(int n, int s, int e, int l, int r, long long v)
+const ll N = 1000000;
+ll a[4*N + 1] = { 0 };
+ll lazy[4*N + 1] = { 0 };
+ll nn, mm, kk;
+
+void update(ll n, ll nl, ll nr, ll l, ll r, ll v)
 {
-	if (lazy[n])
+	if(lazy[n])
 	{
-		a[n] += (e - s + 1) * lazy[n];
-		if (s != e) lazy[n * 2] += lazy[n], lazy[n * 2 + 1] += lazy[n];
+		a[n] += (nr-nl+1) * lazy[n];
+		if(nl!=nr) lazy[2*n] += lazy[n];
+		if(nl!=nr) lazy[2*n+1] += lazy[n];
 		lazy[n] = 0;
 	}
 
-	if (s > r || e < l) return;
-	else if (l <= s && e <= r)
+	if(r < nl || nr < l) return;
+	else if(l <= nl && nr <= r)
 	{
-		a[n] += (e - s + 1) * v;
-		if (s != e) lazy[n * 2] += v, lazy[n * 2 + 1] += v;
+		a[n] += (nr-nl+1) * v;
+		if(nl!=nr) lazy[2*n] += v;
+		if(nl!=nr) lazy[2*n+1] += v;
 	}
 	else
 	{
-		update(n * 2, s, (s + e) / 2, l, r, v);
-		update(n * 2 + 1, (s + e) / 2 + 1, e, l, r, v);
-		a[n] = a[n * 2] + a[n * 2 + 1];
+		ll mid = (nl + nr) / 2;
+		update(2*n, nl, mid, l, r, v);
+		update(2*n+1, mid + 1, nr, l, r, v);
+		a[n] = a[2*n] + a[2*n+1];
 	}
 }
-long long sum(int n, int s, int e, int l, int r)
-{
 
-	if (lazy[n])
+ll query(ll n, ll nl, ll nr, ll l, ll r)
+{
+	if(lazy[n])
 	{
-		a[n] += (e - s + 1) * lazy[n];
-		if (s != e) lazy[n * 2] += lazy[n], lazy[n * 2 + 1] += lazy[n];
+		a[n] += (nr-nl+1) * lazy[n];
+		if(nl!=nr) lazy[2*n] += lazy[n];
+		if(nl!=nr) lazy[2*n+1] += lazy[n];
 		lazy[n] = 0;
 	}
 
-	if (s > r || e < l) return 0;
-	else if (l <= s && e <= r) return a[n];
-	else return sum(n * 2, s, (s + e) / 2, l, r) + sum(n * 2 + 1, (s + e) / 2 + 1, e, l, r);
+	if(r < nl || nr < l) return 0;
+	else if(l <= nl && nr <= r) return a[n];
+	else
+	{
+		ll mid = (nl + nr) / 2;
+		return query(2*n, nl, mid, l, r) + query(2*n+1, mid + 1, nr, l, r);
+	}
 }
 
 int main()
 {
-	scanf("%d %d %d", &n, &m, &k);
-	for (int i = 1; i <= n; i++)
+	scanf("%lld %lld %lld", &nn, &mm, &kk);
+	for(int i=0; i<nn; i++)
 	{
-		long long x;
-		scanf("%lld", &x);
-		update(1, 1, n, i, i, x);
+		ll x; scanf("%lld", &x);
+		update(1, 0, nn-1, i, i, x);
 	}
-	for (int i = 0; i < m + k; i++)
+	for(int i=0; i<mm+kk; i++)
 	{
-		int q;
-		long long x, y, z;
-		scanf("%d", &q);
-		if (q == 1)
+		ll t, l, r, v; scanf("%lld", &t);
+		if(t == 1)
 		{
-			scanf("%lld %lld %lld", &x, &y, &z);
-			update(1, 1, n, x, y, z);
+			scanf("%lld %lld %lld", &l, &r, &v); l--; r--;
+			update(1, 0, nn-1, l, r, v);
 		}
-		else
+		if(t == 2)
 		{
-			scanf("%lld %lld", &x, &y);
-			printf("%lld\n", sum(1, 1, n, x, y));
+			scanf("%lld %lld", &l, &r); l--; r--;
+			printf("%lld\n", query(1, 0, nn-1, l, r));
 		}
 	}
 	return 0;

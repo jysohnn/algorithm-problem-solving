@@ -1,47 +1,36 @@
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
 
-char a[21][21];
-bool v[21][21] = {0};
-bool vv[26] = {0};
-const int dx[4] = {1,-1,0,0};
-const int dy[4] = {0,0,1,-1};
+int row, col;
+char map[20][20];
+int sol = 0;
+int dr[4] = { -1, 0, 1, 0 };
+int dc[4] = { 0, -1, 0, 1 }; //위 왼 아래 오른
+int v[26] = { 0 }; //0~25 : A ~ Z
 
-int m,n;
-int max = 0;
-
-bool bc(int x,int y)
+bool bc(int x, int y) { return x >= 0 && x < row && y >= 0 && y < col; }
+void solve(int x, int y, int n)
 {
-    if(x >= 0 && x < m && y >= 0 && y < n) return true;
-    else return false;
+	if (sol < n) sol = n;
+
+	v[map[x][y] - 'A'] = 1;
+	for (int k = 0; k < 4; k++)
+	{
+		int nx = x + dr[k];
+		int ny = y + dc[k];
+		if (bc(nx, ny) && !v[map[nx][ny] - 'A'])
+			solve(nx, ny, n + 1);
+	}
+	v[map[x][y] - 'A'] = 0;
 }
 
-void dfs(int x,int y, int l)
-{
-    if(l > max) max = l;
-    for(int i=0;i<4;i++)
-        if(bc(x+dx[i],y+dy[i]) && !v[x+dx[i]][y+dy[i]] && !vv[a[x+dx[i]][y+dy[i]] - 'A'])
-        {
-            v[x+dx[i]][y+dy[i]] = 1;
-            vv[a[x+dx[i]][y+dy[i]] - 'A'] = 1;
-            dfs(x+dx[i],y+dy[i],l+1);
-            v[x+dx[i]][y+dy[i]] = 0;
-            vv[a[x+dx[i]][y+dy[i]] - 'A'] = 0;
-        }
-}
+int main() {
 
-int main()
-{
-    scanf("%d %d",&m,&n);
-    getchar();
-    for(int i=0;i<m;i++)
-    {
-        for(int j=0;j<n;j++) a[i][j] = getchar();
-        getchar();
-    }
-    v[0][0] = 1;
-    vv[a[0][0] - 'A'] = 1;
-    dfs(0,0,1);
-    printf("%d",max);
-    return 0;
+	scanf("%d %d", &row, &col);  getchar();
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++) scanf("%c", &map[i][j]);
+		getchar();
+	}
+	solve(0, 0, 1);
+	printf("%d\n", sol);
 }

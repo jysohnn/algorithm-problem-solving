@@ -1,24 +1,29 @@
-#include <cstdio>
+#include <iostream>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
 
+int a[9];
+vector<int> sol;
+
 int main()
 {
-	int a[9];
-	int sum=-100;
-	bool check[9]={0};
-	for(int i=0;i<9;i++) {scanf("%d",a+i); sum+=a[i];}
-	sort(a,a+9);
+	for(int i=0;i<9;i++) scanf("%d", a+i);
 	for(int i=0;i<9;i++)
 		for(int j=i+1;j<9;j++)
-			if(a[i]+a[j] == sum)
+		{
+			int sum = 0;
+			for(int k=0;k<9;k++)
+				if(k != i && k != j) sum += a[k];
+			if(sum == 100)
 			{
-				check[i]=true;
-				check[j]=true;
-				break;
+				for(int k=0;k<9;k++)
+					if(k != i && k != j) sol.push_back(a[k]);
+				sort(sol.begin(), sol.end());
+				for(int k=0;k<sol.size();k++) printf("%d\n", sol[k]);
+				return 0;
 			}
-	for(int i=0;i<9;i++)
-		if(!check[i]) printf("%d\n",a[i]);
+		}
 	return 0;
 }

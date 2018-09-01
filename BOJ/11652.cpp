@@ -19,22 +19,25 @@ using pll = pair<ll, ll>;
 using tii = tuple<int, int, int>;
 using tll = tuple<ll, ll, ll>;
 
-string s;
-vector<ll> c(26, 0);
+ll n, m = 0, c = 0, p = -1, sol;
+ll a[1000001];
 
 int main()
 {
-	cin >> s;
-	for (int i = 0; i < s.size(); i++)
+	scanf("%lld", &n);
+	for (int i = 0; i < n; i++) scanf("%lld", a + i);
+	sort(a, a + n);
+	for (int i = 0; i < n; i++)
 	{
-		if ('a' <= s[i] && s[i] <= 'z') c[s[i] - 'a']++;
-		if ('A' <= s[i] && s[i] <= 'Z') c[s[i] - 'A']++;
+		if (p != a[i])
+		{
+			if (c > m) m = c, sol = p;
+			c = 0;
+			p = a[i];
+		}
+		c++;
 	}
-	auto m = max_element(c.begin(), c.end());
-	ll check = 0; char sol;
-	for (int i = 0; i < 26; i++)
-		if (c[i] == *m) check++, sol = 'A' + i;
-	if (check == 1) cout << sol;
-	else cout << '?';
+	if (c > m) m = c, sol = p;
+	printf("%lld", sol);
 	return 0;
 }

@@ -15,7 +15,8 @@ int dis[N][N];
 bool floyd()
 {
 	bool cycle = 0;
-	memset(dis, INF, sizeof(dis));
+    for(int i = 0; i < N; i++)
+	    fill(dis[i], dis[i]+N, INF);
 	scanf("%d %d", &n, &m);
 	for (int i = 0; i < m; i++)
 	{

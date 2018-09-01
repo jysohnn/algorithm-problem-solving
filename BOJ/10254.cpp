@@ -1,98 +1,151 @@
 #include <iostream>
-#include <vector>
-#include <stack>
-#include <cmath>
 #include <algorithm>
-
-#define N 200003
+#include <functional>
+#include <vector>
+#include <cmath>
+#include <cstring>
+#include <map>
 
 using namespace std;
+using ll = long long;
 
-typedef long long ll;
-ll n, cnt, p1, p2, mx = 0;
-const double PI = acos(-1);
-int t;
-pair<ll, ll> aa, bb;
-
-struct point {
-    ll x, y;
-    bool operator<(const point&r)const {
-        return x<r.x || (x == r.x&&y<r.y);
-    }
-    ll ccw(point p, point q) {
-        return (p.x - x)*(q.y - y) - (p.y - y)*(q.x - x);
-    }
-} a[N], convex[N];
-
-void convexhull() {
-    scanf("%lld", &n);
-    ll i;
-    for (i = 1; i <= n; i++)
-        scanf("%lld %lld", &a[i].x, &a[i].y);
-    sort(a + 1, a + 1 + n);
-    for (i = 1; i <= n; i++) {
-        for (; cnt >= 2 && convex[cnt - 1].ccw(convex[cnt], a[i]) <= 0; --cnt);
-        convex[++cnt] = a[i];
-    }
-    for (p2 = cnt, i = n - 1; i >= 1; --i) {
-        for (; cnt >= p2 + 1 && convex[cnt - 1].ccw(convex[cnt], a[i]) <= 0; --cnt);
-        convex[++cnt] = a[i];
-    }
-    p1 = 1; cnt--;
-}
-
-ll cal_dis() {
-    return (convex[p1].x - convex[p2].x)*(convex[p1].x - convex[p2].x) + (convex[p1].y - convex[p2].y)*(convex[p1].y - convex[p2].y);
-}
-
-void rotating_calipers()
+struct vector2
 {
-    ll i;
-    ll x1, y1, x2, y2, xx1, yy1, xx2, yy2;
-    double cos1, cos2;
-
-    x1 = x2 = 0;
-    y1 = -1, y2 = 1;
-
-    for (i = 1; i <= cnt; i++) {
-        if (mx < cal_dis())
-        {
-            aa.first = convex[p1].x;
-            aa.second = convex[p1].y;
-            bb.first = convex[p2].x;
-            bb.second = convex[p2].y;
-            mx = cal_dis();
-        }
-
-        xx1 = (convex[p1%cnt + 1].x - convex[p1].x); yy1 = (convex[p1%cnt + 1].y - convex[p1].y);
-        xx2 = (convex[p2%cnt + 1].x - convex[p2].x); yy2 = (convex[p2%cnt + 1].y - convex[p2].y);
-
-        cos1 = (double)(x1*xx1 + y1*yy1) / sqrt(x1*x1 + y1*y1) / sqrt(xx1*xx1 + yy1*yy1);
-        cos2 = (double)(x2*xx2 + y2*yy2) / sqrt(x2*x2 + y2*y2) / sqrt(xx2*xx2 + yy2*yy2);
-
-        if (cos1>cos2) {
-            p1 = p1%cnt + 1;
-            x1 = xx1; y1 = yy1;
-
-            x2 = -x1; y2 = -y1;
-        }
-        else {
-            p2 = p2%cnt + 1;
-            x2 = xx2; y2 = yy2;
-            x1 = -x2; y1 = -y2;
-        }
+    double x, y;
+    explicit vector2(double x_ = 0, double y_ = 0) : x(x_), y(y_) {}
+    bool operator==(const vector2& rhs) const
+    {
+        return x == rhs.x && y == rhs.y;
     }
-    printf("%lld %lld %lld %lld\n", aa.first, aa.second, bb.first, bb.second);
+    bool operator<(const vector2& rhs) const
+    {
+        return x != rhs.x ? x < rhs.x : y < rhs.y;
+    }
+    vector2 operator+(const vector2& rhs) const
+    {
+        return vector2(x + rhs.x, y + rhs.y);
+    }
+    vector2 operator-(const vector2& rhs) const
+    {
+        return vector2(x - rhs.x, y - rhs.y);
+    }
+    vector2 operator*(double rhs) const
+    {
+        return vector2(x * rhs, y * rhs);
+    }
+    double dot(const vector2& rhs) const
+    {
+        return x * rhs.x + y * rhs.y;
+    }
+    double cross(const vector2& rhs) const
+    {
+        return x * rhs.y - rhs.x * y;
+    }
+    double norm() const
+    {
+        return hypot(x, y);
+    }
+    vector2 normalize() const
+    {
+        return vector2(x / norm(), y / norm());
+    }
+};
+
+double ccw(vector2 a, vector2 b)
+{
+    return a.cross(b);
+}
+double ccw(vector2 p, vector2 a, vector2 b)
+{
+    return ccw(a-p, b-p);
 }
 
-int main() {
-    scanf("%d", &t);
-    while (t--)
+ll t, n;
+vector<vector2> p, ret, sol;
+vector2 f;
+
+bool cmp(vector2& x, vector2& y)
+{
+    double flag = ccw(f, x, y);
+    if(flag > 0) return true;
+    else if(flag == 0)
     {
-        mx = 0;
-        n = 0, cnt = 0, p1 = 0, p2 = 0;
-        convexhull();
-        rotating_calipers();
+        if((x-f).norm() < (y-f).norm()) return true;
+        else return false;
+    }
+    else return false;
+}
+
+void graham(vector<vector2>& p, vector<vector2>& ret)
+{
+    sort(p.begin(), p.end());
+    f = p[0]; ret.push_back(f);
+    sort(p.begin() + 1, p.end(), cmp);
+    for(int i=1; i<p.size(); i++)
+    {
+        while(ret.size() >= 2
+        && ccw(ret[ret.size()-1] - ret[ret.size()-2], p[i] - ret[ret.size()-1]) <= 0) ret.pop_back();
+        ret.push_back(p[i]);
+    }
+}
+
+double diameter(const vector<vector2>& p, vector<vector2>& sol)
+{
+    int n = p.size();
+
+    // 우선 가장 왼쪽에 있는 점과 오른쪽에 있는 점을 찾는다.
+    int left = min_element(p.begin(), p.end()) - p.begin();
+    int right = max_element(p.begin(), p.end()) - p.begin();
+
+    // p[left]와 p[right]에 각각 수직선을 붙인다. 두 수직선은 서로 정반대 방향을 가리키므로,
+    // a의 방향만을 표현하면 된다.
+    vector2 calipersA(0, 1);
+    double ret = (p[right] - p[left]).norm();
+    sol.push_back(p[right]); sol.push_back(p[left]);
+
+    // toNext[i]: p[i]에서 다음 점까지의 방향을 나타내는 단위 벡터
+    vector<vector2> toNext(n);
+    for(int i = 0; i < n; i++) toNext[i] = (p[(i+1) % n] - p[i]).normalize();
+
+    // a와 b는 각각 두 선분이 어디에 붙은 채로 회전하고 있는지를 나타낸다.
+    int a = left, b = right;
+
+    // 반 바퀴 돌아서 두 선분이 서로 위치를 바꿀 때까지 계속한다.
+    while(a != right || b != left)
+    {
+        // a에서 다음 점까지의 각도와 b에서 다음 점까지의 각도 중 어느 쪽이 작은지 확인한다.
+        double cosThetaA = calipersA.dot(toNext[a]);
+        double cosThetaB = -calipersA.dot(toNext[b]);
+
+        if(cosThetaA > cosThetaB) calipersA = toNext[a], a = (a+1) % n;
+        else calipersA = toNext[b] * -1, b = (b+1) % n;
+
+        if(ret < (p[a] - p[b]).norm())
+        {
+            ret = (p[a] - p[b]).norm();
+            sol.clear();
+            sol.push_back(p[a]); sol.push_back(p[b]);
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    scanf("%lld", &t);
+    while(t--)
+    {
+        scanf("%lld", &n);
+        p.clear(); ret.clear(); sol.clear();
+        p.resize(n);
+        for(ll i=0; i<n; i++)
+        {
+            ll x, y; scanf("%lld %lld", &x, &y);
+            p[i].x = x; p[i].y = y;
+        }
+        graham(p, ret);
+        diameter(ret, sol);
+        printf("%lld %lld %lld %lld\n", ll(sol[0].x),ll(sol[0].y), ll(sol[1].x), ll(sol[1].y));
     }
     return 0;
 }

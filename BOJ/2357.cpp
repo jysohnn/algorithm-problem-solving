@@ -1,63 +1,78 @@
-#include <cstdio>
+#include <iostream>
 #include <algorithm>
-#define INF 1000000001
 
 using namespace std;
+using ll = long long;
 
-int n, m;
-long long a[400001];
-long long b[400001];
+const ll N = 100000;
+const ll INF = 1000000002;
+ll a1[4*N + 1];
+ll a2[4*N + 1];
+ll n, m;
 
-void update(int n, int s, int e, int p, long long v)
+void update1(ll n, ll nl, ll nr, ll i, ll v)
 {
-	if (s > p || e < p) return;
-	else if (s == e) a[n] = v;
+	if(i > nr || i < nl) return;
+	else if(nl == nr) a1[n] = min(a1[n], v);
 	else
 	{
-		update(n * 2, s, (s + e) / 2, p, v);
-		update(n * 2 + 1, (s + e) / 2 + 1, e, p, v);
-		a[n] = min(a[n * 2] ,a[n * 2 + 1]);
+		ll mid = (nl + nr) / 2;
+		update1(2*n, nl, mid, i, v);
+		update1(2*n+1, mid+1, nr, i, v);
+		a1[n] = min(a1[2*n], a1[2*n+1]);
 	}
 }
-long long mini(int n, int s, int e, int l, int r)
+
+ll query1(ll n, ll nl, ll nr, ll l, ll r)
 {
-	if (s > r || e < l) return INF;
-	else if (l <= s && e <= r) return a[n];
-	else return min(mini(n * 2, s, (s + e) / 2, l, r), mini(n * 2 + 1, (s + e) / 2 + 1, e, l, r));
-}
-void update2(int n, int s, int e, int p, long long v)
-{
-	if (s > p || e < p) return;
-	else if (s == e) b[n] = v;
+	if(r < nl || nr < l) return INF;
+	else if(l <= nl && nr <= r) return a1[n];
 	else
 	{
-		update2(n * 2, s, (s + e) / 2, p, v);
-		update2(n * 2 + 1, (s + e) / 2 + 1, e, p, v);
-		b[n] = max(b[n * 2], b[n * 2 + 1]);
+		ll mid = (nl + nr) / 2;
+		return min (query1(2*n, nl, mid, l, r), query1(2*n+1, mid + 1, nr, l, r));
 	}
 }
-long long maxi(int n, int s, int e, int l, int r)
+
+void update2(ll n, ll nl, ll nr, ll i, ll v)
 {
-	if (s > r || e < l) return 0;
-	else if (l <= s && e <= r) return b[n];
-	else return max(maxi(n * 2, s, (s + e) / 2, l, r), maxi(n * 2 + 1, (s + e) / 2 + 1, e, l, r));
+	if(i > nr || i < nl) return;
+	else if(nl == nr) a2[n] = max(a2[n], v);
+	else
+	{
+		ll mid = (nl + nr) / 2;
+		update2(2*n, nl, mid, i, v);
+		update2(2*n+1, mid+1, nr, i, v);
+		a2[n] = max(a2[2*n], a2[2*n+1]);
+	}
+}
+
+ll query2(ll n, ll nl, ll nr, ll l, ll r)
+{
+	if(r < nl || nr < l) return 0;
+	else if(l <= nl && nr <= r) return a2[n];
+	else
+	{
+		ll mid = (nl + nr) / 2;
+		return max (query2(2*n, nl, mid, l, r), query2(2*n+1, mid + 1, nr, l, r));
+	}
 }
 
 int main()
 {
-	scanf("%d %d", &n, &m);
-	for (int i = 1; i <= n; i++)
+	for(int i=0; i<4*N + 1; i++) a1[i] = INF, a2[i] = 0;
+
+	scanf("%lld %lld", &n, &m);
+	for(int i=0; i<n; i++)
 	{
-		long long x;
-		scanf("%lld", &x);
-		update(1, 1, n, i, x);
-		update2(1, 1, n, i, x);
+		ll x; scanf("%lld", &x);
+		update1(1, 0, n-1, i, x);
+		update2(1, 0, n-1, i, x);
 	}
-	for (int i = 0; i < m; i++)
+	for(int i=0; i<m; i++)
 	{
-		int x, y;
-		scanf("%d %d", &x, &y);
-		printf("%lld %lld\n", mini(1,1,n,x,y), maxi(1,1,n,x,y));
+		ll l, r; scanf("%lld %lld", &l, &r); l--; r--;
+		printf("%lld %lld\n", query1(1, 0, n-1, l, r), query2(1, 0, n-1, l, r));
 	}
 	return 0;
 }

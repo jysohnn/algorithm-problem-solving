@@ -1,45 +1,50 @@
-#include <cstdio>
-#include <vector>
+#include <iostream>
 #include <algorithm>
+#include <vector>
+#include <cstring>
+#include <cmath>
 
 using namespace std;
+using ll = long long;
+using pll = pair<ll, ll>;
 
-const int n = 10000001;
-bool prime[n] = {1,1,0};
-vector<long long> p;
-vector<long long> pp;
-long long a, b;
-long long sol = 0;
-bool flag = false;
+ll p, a;
+bool isprime[10000001]; // prime 배열, memset(isprime, 1, sizeof(isprime));
+vector<ll> prime; // prime 벡터
+vector<ll> sol;
+
+void make_prime(ll n)
+{
+	isprime[0] = isprime[1] = 0;
+	ll sq = (ll)sqrt(n);
+	for(ll i = 2; i <= sq; i++)
+	{
+		if(isprime[i])
+		{
+			for(ll j = i*i; j < 10000001; j += i) isprime[j] = 0;
+			prime.push_back(i);
+		}
+	}
+}
 
 int main()
 {
-    for(int i=2;i<n;i++)
+    for(ll i=0; i<10000001; i++) isprime[i] = 1;
+    make_prime((ll)100000000000001);
+    for(ll i=0; i<prime.size(); i++)
     {
-        if(!prime[i])
+        ll x = prime[i];
+        while(1)
         {
-            p.push_back(i);
-            for(int j=2;i*j<n;j++) prime[i*j] = 1;
+            if((double)x > (double)100000000000000 / double(prime[i])) break;
+            sol.push_back(x * prime[i]);
+            x *= prime[i];
         }
     }
-    for(int i=0;i<p.size();i++)
-    {
-        long long x = p[i];
-        long long y = x*x;
-        while(y < 100000000000001)
-        {
-            pp.push_back(y);
-            if(y >= 100000000000001.0 / (double)x) break;
-            y *= x;
-        }
-    }
-    sort(pp.begin(),pp.end());
-    scanf("%lld %lld",&a,&b);
-    for(int i=0;i<pp.size();i++)
-    {
-        if(pp[i] >= a) flag = true;
-        if(flag && pp[i] <= b) sol++;
-    }
-    printf("%lld",sol);
+    ll a, b, ssol = 0;
+    cin>>a>>b;
+    for(ll i=0; i<sol.size(); i++)
+        if(a <= sol[i] && sol[i] <= b) ssol++;
+    cout<<ssol;
     return 0;
 }

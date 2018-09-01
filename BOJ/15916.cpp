@@ -4,10 +4,10 @@
 #include <vector>
 #include <cmath>
 #include <cstring>
-#include <map>
 
 using namespace std;
 using ll = long long;
+using pll = pair<ll, ll>;
 
 struct vector2
 {
@@ -53,47 +53,48 @@ ll ccw(vector2 a, vector2 b)
 }
 ll ccw(vector2 p, vector2 a, vector2 b)
 {
-    return ccw(a-p, b-p);
+    ll ret = ccw(a-p, b-p);
+    if (ret > 0) return 1;
+    else if(ret == 0) return 0;
+    else return -1;
 }
-
-ll n;
-vector<vector2> p, ret;
-vector2 f;
-
-bool cmp(vector2& x, vector2& y)
+bool isParallel(vector2 a, vector2 b, vector2 c, vector2 d)
 {
-    ll flag = ccw(f, x, y);
-    if(flag > 0) return true;
-    else if(flag == 0)
+    return (a-b).cross(c-d) == 0;
+}
+bool segmentIntersect(vector2 a, vector2 b, vector2 c, vector2 d)
+{
+    ll ab = ccw(a, b, c) * ccw(a, b, d);
+    ll cd = ccw(c, d, a) * ccw(c, d, b);
+
+    if(ab == 0 && cd == 0)
     {
-        if((x-f).norm() < (y-f).norm()) return true;
-        else return false;
+        if(b < a) swap(a, b);
+        if(d < c) swap(c, d);
+        return !(b < c || d < a);
     }
-    else return false;
+    return ab <= 0 && cd <= 0;
 }
 
-void graham(vector<vector2>& p, vector<vector2>& ret)
-{
-    sort(p.begin(), p.end());
-    f = p[0]; ret.push_back(f);
-    sort(p.begin() + 1, p.end(), cmp);
-    for(int i=1; i<p.size(); i++)
-    {
-        while(ret.size() >= 2
-        && ccw(ret[ret.size()-1] - ret[ret.size()-2], p[i] - ret[ret.size()-1]) <= 0) ret.pop_back();
-        ret.push_back(p[i]);
-    }
-}
+ll n, k;
+ll a[100001];
+bool sol = 0;
 
 int main()
 {
-    cin>>n; p.resize(n);
-    for(ll i=0; i<n; i++)
+    cin>>n;
+    for(ll i=1; i<=n; i++) scanf("%lld", a+i);
+    cin>>k;
+    
+    for(ll i=1; i<n; i++)
     {
-        ll x, y; scanf("%lld %lld", &x, &y);
-        p[i].x = x; p[i].y = y;
+        vector2 xx(i, k * i);
+        vector2 yy(i+1, k*(i+1));
+        vector2 x(i, a[i]);
+        vector2 y(i+1, a[i+1]);
+        if(segmentIntersect(xx, yy, x, y)) sol = 1;
     }
-    graham(p, ret);
-    cout<<ret.size();
+    if(sol || a[1] == k) cout<<'T';
+    else cout<<'F';
     return 0;
 }
